@@ -7,17 +7,28 @@ import {
   Col
 } from 'react-bootstrap';
 
-import { getMe, deleteBook } from '../utils/API';
-import Auth from '../utils/auth';
-import { removeBookId } from '../utils/localStorage';
-import {useMutation, useQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
+// import { getMe, deleteBook } from '../utils/API';
 import { GET_ME } from '../utils/queries';
 import { REMOVE_BOOK } from '../utils/mutations';
+import Auth from '../utils/auth';
+import { removeBookId } from '../utils/localStorage';
+// import { removeBookId } from '../utils/localStorage';
+// import {useMutation, useQuery } from '@apollo/client';
+
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(GET_ME);
-  const [removeBook, {error}] = useMutation(REMOVE_BOOK);
-  const userData = data?.me || [];
+  const [removeBook] = useMutation(REMOVE_BOOK);
+  const userData = data?.me || {};
+
+  if(!userData?.username) {
+    return (
+      <h4>
+        You need to be logged in to see this page.
+      </h4>
+    );
+  }
 
   // use this to determine if `useEffect()` hook needs to run again
 
@@ -58,10 +69,20 @@ const SavedBooks = () => {
     }
 
     try {
-      // const response = await deleteBook(bookId, token);
-      const {data} = await removeBook({
-        variables: {bookId}
+      await removeBook({
+        variables: {bookId: bookId},
+        update: cache => {
+          const data = cache.readQuery({ query: GET_ME });
+          const userDataCache = data.me;
+          const savedBooksCache = userDataCache.savedBooks;
+          const updatedBookCache = updatedBookCache;
+          cache.writeQuery({ query: GET_ME, data: { data: {...data.me.savedBooks}}})
+        }
       });
+      // const response = await deleteBook(bookId, token);
+      // const {data} = await removeBook({
+      //   variables: {bookId}
+      // });
 
       removeBookId(bookId);
     } catch (err) {
