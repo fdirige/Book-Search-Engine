@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.7.14",
-    "mongoose": "^7.1.1"
+    "mongoose": "^7.1.1",
+    "react-scripts": "^5.0.1"
   }
 }
